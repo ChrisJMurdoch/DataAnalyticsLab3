@@ -1,0 +1,10 @@
+
+#map .region {
+    fill: rgb(22, 129, 0);
+    stroke: #fff;
+}
+
+#bounding-box {
+    fill: none;
+    stroke: rgb(255, 0, 0);
+}
