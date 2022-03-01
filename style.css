@@ -15,11 +15,21 @@ body {
     border: 2px solid black;
 }
 
-#map .region {
+/* Map regions */
+
+#map .region.valid {
     fill: rgb(22, 129, 0);
     stroke: white;
 }
-#map .region:hover {
-    fill: rgb(140, 0, 255);
+#map .region.valid:hover {
+    fill: rgb(20, 75, 255);
+    filter: drop-shadow(0 0 7px rgba(0,0,0,0.75));
+}
+
+#map .region.invalid {
+    fill: rgb(107, 107, 107);
+    stroke: white;
+}
+#map .region.invalid:hover {
     filter: drop-shadow(0 0 7px rgba(0,0,0,0.75));
 }
