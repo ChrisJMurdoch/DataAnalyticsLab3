@@ -16,9 +16,9 @@
     <div id="info">Info</div>
 
     <!-- World map -->
-    <svg width="620px" height="600px">
+    <svg id="canvas">
         <g id="map"></g>
-        <rect id="bounding-box"></rect>
+        <use id="foreground_region" style="pointer-events: none;"/>
     </svg>
 
     <!-- Initialise map data -->

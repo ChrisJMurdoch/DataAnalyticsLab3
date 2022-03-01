@@ -1,10 +1,25 @@
 
-#map .region {
-    fill: rgb(22, 129, 0);
-    stroke: #fff;
+/* Default overrides */
+
+body {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
 }
 
-#bounding-box {
-    fill: none;
-    stroke: rgb(255, 0, 0);
+/* SVG map */
+
+#canvas {
+    margin: 0 20%;
+    width: 60%;
+    border: 2px solid black;
+}
+
+#map .region {
+    fill: rgb(22, 129, 0);
+    stroke: white;
+}
+#map .region:hover {
+    fill: rgb(140, 0, 255);
+    filter: drop-shadow(0 0 7px rgba(0,0,0,0.75));
 }
