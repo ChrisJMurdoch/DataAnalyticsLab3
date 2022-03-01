@@ -11,11 +11,19 @@ class WorldMap {
               aspectRatio = 1.5;
 
         // Get size
-        const width = d3.select("#canvas").style("width").slice(0, -2),
+        const width = d3.select("#map_canvas").style("width").slice(0, -2),
               height = width / aspectRatio;
 
-        // Set canvas height
-        d3.select("#canvas").style("height", height);
+        // Create canvas components
+        const map_canvas = d3.select("#map_canvas")
+            .style("height", height);
+        map_canvas
+            .append("g")
+            .attr("id", "map");
+        map_canvas
+            .append("use")
+            .attr("id", "foreground_region")
+            .style("pointer-events", "none");
 
         // Create GeoGenerator
         const projection = d3.geoMercator()

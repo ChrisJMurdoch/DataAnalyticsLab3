@@ -12,19 +12,23 @@
 
 <body>
 
+    <!-- CONTENT -->
+
     <!-- Info display -->
     <div id="info">Info</div>
 
     <!-- World map -->
-    <svg id="canvas">
-        <g id="map"></g>
-        <use id="foreground_region" style="pointer-events: none;"/>
-    </svg>
+    <svg id="map_canvas"></svg>
 
-    <!-- Load functions -->
+
+    <!-- SCRIPTS -->
+
+    <!-- Graphing functions -->
+    <script src='./scripts/worldMap.js'></script>
+
+    <!-- Utility functions -->
     <script src='./scripts/asyncLoader.js'></script>
-    <script src='./scripts/map.js'></script>
-
+    
     <!-- Start main -->
     <script src='./scripts/main.js'></script>
 
