@@ -31,12 +31,38 @@ class AsyncLoader {
         });
     }
 
-    /** Get loaded JSON */
-    static getJson(identifier) {
+    /** Start loading CSV asynchronously */
+    static loadCsv(identifier, url) {
+
+        // Set loading
+        console.log(`Loading ${identifier}...`)
+        AsyncLoader.loading[identifier] = true;
+
+        // Load async
+        d3.csv(url).then(function(csv) {
+
+            // Stash result
+            console.log(`${identifier} loaded.`)
+            AsyncLoader.loaded[identifier] = csv;
+
+            // Loading done
+            delete AsyncLoader.loading[identifier];
+
+            // Invoke callback
+            if (AsyncLoader.callback!==null && Object.keys(AsyncLoader.loading).length === 0) {
+                console.log(`All loaded.  Invoking callback.`)
+                AsyncLoader.callback();
+                AsyncLoader.callback = null;
+            }
+        });
+    }
+
+    /** Get loaded data */
+    static getData(identifier) {
         return AsyncLoader.loaded[identifier];
     }
 
-    /** Check if any JSONs are still loading */
+    /** Check if any files are still loading */
     static onceLoaded(func) {
         console.log(`Callback set.`)
         AsyncLoader.callback = func;
