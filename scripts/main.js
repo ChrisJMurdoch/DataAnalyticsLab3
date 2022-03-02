@@ -82,11 +82,12 @@ AsyncLoader.onceLoaded(function() {
     // Set callback for when region is clicked
     WorldMap.onClick(function(iso) {
 
-        const country = isoToVaccination.get(iso);
+        const region = isoToVaccination.get(iso);
 
         // Total vaccination data
         vaccinationChart.update(
-            country.data,
+            `Total vaccinations per capita for ${region.country}`,
+            region.data,
             (record) => new Date(record.date),
             (record) => record.people_vaccinated_per_hundred,
             (data) => [minDate, maxDate],
@@ -95,7 +96,8 @@ AsyncLoader.onceLoaded(function() {
 
         // Daily vaccination data
         dailyVaccinationChart.update(
-            country.data,
+            `Daily vaccinations per capita for ${region.country}`,
+            region.data,
             (record) => new Date(record.date),
             (record) => record.daily_people_vaccinated_per_hundred,
             (data) => [minDate, maxDate],

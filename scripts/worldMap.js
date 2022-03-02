@@ -25,6 +25,12 @@ class WorldMap {
             .append("use")
             .attr("id", "region_highlight")
             .style("pointer-events", "none");
+        map_canvas
+            .append("text")
+            .classed("title", true)
+            .attr("x", width/2)
+            .attr("y", height-20)
+            .style("text-anchor", "middle");
 
         // Create GeoGenerator
         const projection = d3.geoMercator()
@@ -46,7 +52,9 @@ class WorldMap {
             .on('mouseover', function (event, data) {
 
                 // Display region-box data
-                d3.select('#info').text(`${data.properties.NAME} | ISO: ${data.properties.ISO_A3}`);
+                map_canvas.select('.title')
+                    .text(`${data.properties.NAME} (${data.properties.ISO_A3})`);
+                
             })
             .on('click', WorldMap.click)
             .classed("valid", (d) => d.properties.valid)
