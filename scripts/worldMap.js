@@ -2,6 +2,7 @@
 class WorldMap {
 
     static onClickCallback = null;
+    static focusedRegionId = null;
 
     /** Add map to document and load JSON region data */
     static createMap(json) {
@@ -22,7 +23,7 @@ class WorldMap {
             .attr("id", "map");
         map_canvas
             .append("use")
-            .attr("id", "foreground_region")
+            .attr("id", "region_highlight")
             .style("pointer-events", "none");
 
         // Create GeoGenerator
@@ -39,19 +40,32 @@ class WorldMap {
             .data(json.features)
             .enter()
             .append('path')
-            .attr('id', (d) => `${d.properties.NAME.replaceAll(" ", "_")}`)
+            .attr('id', (d) => `${d.properties.ISO_A3}`)
             .classed("region", true)
             .attr('d', geoGenerator)
             .on('mouseover', function (event, data) {
 
                 // Display region-box data
                 d3.select('#info').text(`${data.properties.NAME} | ISO: ${data.properties.ISO_A3}`);
-
-                // Bring region to front
-                d3.select("#foreground_region").attr("xlink:href", `#${data.properties.NAME.replaceAll(" ", "_")}`)
+                
             })
             .on('click', function handleClick(event, data) {
 
+                // Check valid
+                if (data.properties.ISO_A3.includes("-") || !data.properties.valid)
+                    return;
+
+                // Unfocus old region
+                if (WorldMap.focusedRegionId!==null)
+                    d3.select(`#${WorldMap.focusedRegionId}`)
+                        .classed("focused", false);
+                
+                // Focus new region
+                WorldMap.focusedRegionId = data.properties.ISO_A3;
+                d3.select(`#${WorldMap.focusedRegionId}`)
+                    .classed("focused", true);
+                d3.select("#region_highlight").attr("xlink:href", `#${WorldMap.focusedRegionId}`);
+                
                 // Invoke callback
                 if (WorldMap.onClickCallback !== null)
                     WorldMap.onClickCallback(data.properties.ISO_A3);
