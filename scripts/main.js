@@ -29,7 +29,6 @@ AsyncLoader.onceLoaded(function() {
     vaccinations.forEach( record => isoToVaccination.set(record.iso_code, record) );
 
     // Find min and max dates
-    console.log(vaccinations);
     let minDate=null, maxDate=null;
     vaccinations.forEach(record => {
         record.data.forEach(entry => {
@@ -65,34 +64,45 @@ AsyncLoader.onceLoaded(function() {
 
 
 
-    // === CREATE GRAPHS ===
+    // === CREATE VACCINATION GRAPH ===
 
+    // Create vaccination line graph
+    const vaccinationChart = new LineChart("vaccination_chart");
+
+    // Create daily vaccination line graph
+    const dailyVaccinationChart = new LineChart("daily_vaccination_chart");
+
+
+    
+    // === CREATE MAP ===
+    
     // Create world map display
     WorldMap.createMap(worldMap);
 
-    // Create histogram display
-    const country = isoToVaccination.get("GBR");
-    LineChart.createLineChart(
-        country.data,                                     // Array of records
-        (record) => new Date(record.date),                // Function to extract record X
-        (record) => record.people_vaccinated_per_hundred, // Function to extract record Y
-        (data) => [minDate, maxDate],                     // Function to extract X extent
-        (data) => [0, 100]                                // Function to extract Y extent
-    );
-
-
-
-    // === UPDATES ===
-
-    // When region is clicked
+    // Set callback for when region is clicked
     WorldMap.onClick(function(iso) {
+
         const country = isoToVaccination.get(iso);
-        LineChart.updateLineChart(
-            country.data,                                     // Array of records
-            (record) => new Date(record.date),                // Function to extract record X
-            (record) => record.people_vaccinated_per_hundred, // Function to extract record Y
-            (data) => [minDate, maxDate],                     // Function to extract X extent
-            (data) => [0, 100]                                // Function to extract Y extent
+
+        // Total vaccination data
+        vaccinationChart.update(
+            country.data,
+            (record) => new Date(record.date),
+            (record) => record.people_vaccinated_per_hundred,
+            (data) => [minDate, maxDate],
+            (data) => [0, 100]
+        );
+
+        // Daily vaccination data
+        dailyVaccinationChart.update(
+            country.data,
+            (record) => new Date(record.date),
+            (record) => record.daily_people_vaccinated_per_hundred,
+            (data) => [minDate, maxDate],
+            (data) => d3.extent(data, d => d.y)
         );
     })
+
+    // Emulate click on UK region
+    WorldMap.click(null, {properties:{ISO_A3: "GBR", valid: true}});
 });

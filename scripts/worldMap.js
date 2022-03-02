@@ -47,29 +47,8 @@ class WorldMap {
 
                 // Display region-box data
                 d3.select('#info').text(`${data.properties.NAME} | ISO: ${data.properties.ISO_A3}`);
-                
             })
-            .on('click', function handleClick(event, data) {
-
-                // Check valid
-                if (data.properties.ISO_A3.includes("-") || !data.properties.valid)
-                    return;
-
-                // Unfocus old region
-                if (WorldMap.focusedRegionId!==null)
-                    d3.select(`#${WorldMap.focusedRegionId}`)
-                        .classed("focused", false);
-                
-                // Focus new region
-                WorldMap.focusedRegionId = data.properties.ISO_A3;
-                d3.select(`#${WorldMap.focusedRegionId}`)
-                    .classed("focused", true);
-                d3.select("#region_highlight").attr("xlink:href", `#${WorldMap.focusedRegionId}`);
-                
-                // Invoke callback
-                if (WorldMap.onClickCallback !== null)
-                    WorldMap.onClickCallback(data.properties.ISO_A3);
-            })
+            .on('click', WorldMap.click)
             .classed("valid", (d) => d.properties.valid)
             .classed("invalid", (d) => !d.properties.valid);
     }
@@ -77,5 +56,28 @@ class WorldMap {
     /** Bind a function to be called when a region is clicked, provided with the region's ISO code */
     static onClick(func) {
         WorldMap.onClickCallback = func;
+    }
+
+    /** React to click - can be 'dummied' */
+    static click(event, data) {
+
+        // Check valid
+        if (data.properties.ISO_A3.includes("-") || !data.properties.valid)
+            return;
+
+        // Unfocus old region
+        if (WorldMap.focusedRegionId!==null)
+            d3.select(`#${WorldMap.focusedRegionId}`)
+                .classed("focused", false);
+        
+        // Focus new region
+        WorldMap.focusedRegionId = data.properties.ISO_A3;
+        d3.select(`#${WorldMap.focusedRegionId}`)
+            .classed("focused", true);
+        d3.select("#region_highlight").attr("xlink:href", `#${WorldMap.focusedRegionId}`);
+        
+        // Invoke callback
+        if (WorldMap.onClickCallback !== null)
+            WorldMap.onClickCallback(data.properties.ISO_A3);
     }
 }
