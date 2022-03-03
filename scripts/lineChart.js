@@ -39,23 +39,18 @@ class LineChart {
             .style("text-anchor", "middle");
     }
 
-    update(title, inputData, getX, getY, getXExtent, getYExtent) {
+    update(title, data, lines, xExtent, yExtent) {
+
+        // Bind validity-filtered data to each line
+        for (let line of lines)
+            line.data = data.filter( d => line.getX(d) && line.getY(d) );
 
         // Get canvas components
         const linechart_canvas = d3.select(`#${this.identifier}`);
         const linechart = linechart_canvas.select("#linechart");
         linechart_canvas.select(".title").text(title);
 
-        // Collect all valid records (have x and y values)
-        const data = [];
-        inputData.forEach((element) => {
-            const x = getX(element),
-                  y = getY(element);
-            if ( x!==undefined && y!==undefined )
-                data.push({x:x, y:y});
-        });
-
-        // Fade old axes and line
+        // Fade old axes and lines
         linechart_canvas.selectAll(".axis")
             .classed("axis", false) // So that new fade-in doesn't apply
             .transition()
@@ -67,13 +62,27 @@ class LineChart {
             .duration(LineChart.transitionDuration)
             .style("opacity", "0")
             .remove();
+        
+        // Calc extents
+        let xMin=null, xMax=null, yMin=null, yMax=null;
+        for (let line of lines) {
+            for (let record of line.data) {
+                const x = line.getX(record),
+                      y = line.getY(record);
+                xMin = (xMin===null) ? x : Math.min(xMin, x);
+                xMax = (xMax===null) ? x : Math.max(xMax, x);
+                yMin = (yMin===null) ? y : Math.min(yMin, y);
+                yMax = (yMax===null) ? y : Math.max(yMax, y);
+            }
+        }
+        xExtent = (xExtent===null) ? [xMin, xMax] : xExtent;
+        yExtent = (yExtent===null) ? [yMin, yMax] : yExtent;
+        console.log(xExtent, yExtent);
 
         // Create axes
-        const xExtent = getXExtent(data);
         const x = d3.scaleTime()
             .domain([ xExtent[0], xExtent[1] ])
             .range([0,  this.innerWidth]);
-        const yExtent = getYExtent(data);
         const y = d3.scaleLinear()
             .domain([ yExtent[0], yExtent[1] ])
             .range([ this.innerHeight, 0]);
@@ -99,19 +108,24 @@ class LineChart {
             .duration(LineChart.transitionDuration)
             .style("opacity", "1");
         
-        // Plot line
-        linechart.append("path")
-            .datum(data)
-            .attr("fill", "none")
-            .attr("stroke", "blue")
-            .attr("stroke-width", 1.5)
-            .attr("d", d3.line()
-                .x( (d) => x(d.x) )
-                .y( (d) => y(d.y) )
-            )
-            .style("opacity", "0")
-            .transition()
-            .duration(LineChart.transitionDuration)
-            .style("opacity", "1");
+        for (let line of lines) {
+
+            const lineGroup = linechart.append("g");
+
+            // Plot line
+            const path = lineGroup.append("path")
+                .datum(line.data)
+                .attr("fill", "none")
+                .attr("stroke", line.colour)
+                .attr("stroke-width", 1.5)
+                .attr("d", d3.line()
+                    .x( (d) => x(line.getX(d)) )
+                    .y( (d) => y(line.getY(d)) )
+                )
+                .style("opacity", "0")
+                .transition()
+                .duration(LineChart.transitionDuration)
+                .style("opacity", "1");
+        }
     }
 }

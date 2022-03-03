@@ -22,11 +22,14 @@
         <!-- World map -->
         <svg id="map_canvas"></svg>
 
-        <!-- Total vaccinations -->
+        <!-- Vaccinations -->
         <svg id="vaccination_chart" class="linechart"></svg>
 
-        <!-- Daily vaccinations -->
-        <svg id="daily_vaccination_chart" class="linechart"></svg>
+        <!-- Cases -->
+        <svg id="case_chart" class="linechart"></svg>
+
+        <!-- Excess mortality -->
+        <svg id="mortality_chart" class="linechart"></svg>
 
     </div>
 
@@ -38,6 +41,7 @@
 
     <!-- Utility functions -->
     <script src='./scripts/asyncLoader.js'></script>
+    <script src='./scripts/enricher.js'></script>
     
     <!-- Start main -->
     <script src='./scripts/main.js'></script>

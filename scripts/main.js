@@ -6,8 +6,8 @@
 // Natural Earth data in JSON format from https://github.com/martynafford/natural-earth-geojson/tree/master/50m/cultural
 AsyncLoader.loadJson("worldMap", "https://raw.githubusercontent.com/martynafford/natural-earth-geojson/master/50m/cultural/ne_50m_admin_0_countries.json");
 
-// Vaccination data
-AsyncLoader.loadJson("vaccinations", "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.json");
+// Country data
+AsyncLoader.loadCsv("countries", "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/owid-covid-data.csv");
 
 
 
@@ -17,22 +17,31 @@ AsyncLoader.loadJson("vaccinations", "https://raw.githubusercontent.com/owid/cov
 AsyncLoader.onceLoaded(function() {
 
     // Get loaded data
-    const worldMap = AsyncLoader.getJson("worldMap");
-    const vaccinations = AsyncLoader.getJson("vaccinations");
+    const worldMap = AsyncLoader.getData("worldMap");
+    const countries = AsyncLoader.getData("countries");
 
 
 
-    // === ENRICH DATA ===
+    // === ENRICH COVID DATA ===
 
-    // Reorder vaccination data into map, indexed by ISO
-    const isoToVaccination = new Map();
-    vaccinations.forEach( record => isoToVaccination.set(record.iso_code, record) );
+    // Map each record by their respective country's ISO code
+    const isoToCountry = new Map();
+    countries.forEach(record => {
+        const iso = record.iso_code;
+
+        // Add new list
+        if (!isoToCountry.has(iso))
+            isoToCountry.set(iso, {name: record.location, iso_code: iso, data: []});
+        
+        // Append record to list
+        isoToCountry.get(iso).data.push(record);
+    });
 
     // Find min and max dates
     let minDate=null, maxDate=null;
-    vaccinations.forEach(record => {
-        record.data.forEach(entry => {
-            let date = new Date(entry.date);
+    isoToCountry.forEach(country => {
+        country.data.forEach(record => {
+            let date = new Date(record.date);
             if (minDate===null || date<minDate)
                 minDate = date;
             if (maxDate===null || date>maxDate)
@@ -40,6 +49,18 @@ AsyncLoader.onceLoaded(function() {
         });
     });
 
+    // Fill some missing data
+    /*Enricher.fillValues(isoToCountry, [
+        "people_vaccinated_per_hundred",
+        "people_fully_vaccinated_per_hundred",
+        "total_cases_per_million",
+        "total_deaths_per_million"
+    ]);*/
+
+
+
+    // === ENRICH MAP DATA ===
+    
     // Fix missing ISOs in map data
     {
         // Map each region by name
@@ -55,8 +76,8 @@ AsyncLoader.onceLoaded(function() {
         worldMap.features.forEach(region => isoToRegion.set(region.properties.ISO_A3, region));
 
         // Mark region validity
-        vaccinations.forEach(vaccination => {
-            const iso = vaccination.iso_code;
+        isoToCountry.forEach(country => {
+            const iso = country.iso_code;
             if (isoToRegion.has(iso))
                 isoToRegion.get(iso).properties.valid = true;
         });
@@ -66,11 +87,10 @@ AsyncLoader.onceLoaded(function() {
 
     // === CREATE VACCINATION GRAPH ===
 
-    // Create vaccination line graph
+    // Create line graphs
     const vaccinationChart = new LineChart("vaccination_chart");
-
-    // Create daily vaccination line graph
-    const dailyVaccinationChart = new LineChart("daily_vaccination_chart");
+    const caseChart = new LineChart("case_chart");
+    const mortalityChart = new LineChart("mortality_chart");
 
 
     
@@ -82,29 +102,53 @@ AsyncLoader.onceLoaded(function() {
     // Set callback for when region is clicked
     WorldMap.onClick(function(iso) {
 
-        const region = isoToVaccination.get(iso);
+        const region = isoToCountry.get(iso);
 
-        // Total vaccination data
+        // Vaccination
         vaccinationChart.update(
-            `Total vaccinations per capita for ${region.country}`,
+            `Total vaccinated per capita for ${region.name}`,
             region.data,
-            (record) => new Date(record.date),
-            (record) => record.people_vaccinated_per_hundred,
-            (data) => [minDate, maxDate],
-            (data) => [0, 100]
+            [
+                {
+                    title: "Vaccinated",
+                    colour: "blue",
+                    getX: (record) => new Date(record.date),
+                    getY: (record) => record.people_vaccinated_per_hundred
+                },
+                {
+                    title: "Fully Vaccinated",
+                    colour: "green",
+                    getX: (record) => new Date(record.date),
+                    getY: (record) => record.people_fully_vaccinated_per_hundred
+                }
+            ],
+            [minDate, maxDate],
+            [0, 100]
         );
 
-        // Daily vaccination data
-        dailyVaccinationChart.update(
-            `Daily vaccinations per capita for ${region.country}`,
+        // Cases
+        caseChart.update(
+            `Total cases and deaths per capita for ${region.name}`,
             region.data,
-            (record) => new Date(record.date),
-            (record) => record.daily_people_vaccinated_per_hundred,
-            (data) => [minDate, maxDate],
-            (data) => d3.extent(data, d => d.y)
+            [
+                {
+                    title: "Cases",
+                    colour: "blue",
+                    getX: (record) => new Date(record.date),
+                    getY: (record) => record.total_cases_per_million/10000
+                },
+                {
+                    title: "Deaths",
+                    colour: "red",
+                    getX: (record) => new Date(record.date),
+                    getY: (record) => record.total_deaths_per_million/10000
+                }
+            ],
+            [minDate, maxDate],
+            null
         );
     })
 
     // Emulate click on UK region
-    WorldMap.click(null, {properties:{ISO_A3: "GBR", valid: true}});
+    WorldMap.click(null, {properties: {ISO_A3: "GBR", valid: true}});
 });
