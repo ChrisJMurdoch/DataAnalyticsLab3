@@ -24,7 +24,7 @@ body {
     margin: 0 20%;
     width: min(60%, 720px);
 }
-#centre_column * {
+#centre_column > * {
     margin: 5px 0;
     width: 100%;
     background-color: white;
@@ -54,7 +54,3 @@ body {
 }
 
 /* Line graphs */
-
-circle:hover {
-    filter: brightness(1.5);
-}

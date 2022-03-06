@@ -3,7 +3,7 @@ class LineChart {
 
     static dateFormatting = "%m/%Y";
     static aspectRatio = 4;
-    static padding = {top: 60, bottom: 33, sides: 33};
+    static padding = {top: 60, bottom: 33, sides: 36};
     static transitionDuration = 1200;
 
     identifier;
@@ -57,7 +57,17 @@ class LineChart {
             .duration(LineChart.transitionDuration)
             .style("opacity", "0")
             .remove();
-        linechart.selectAll("path")
+        linechart.selectAll(".linegroup")
+            .transition()
+            .duration(LineChart.transitionDuration)
+            .style("opacity", "0")
+            .remove();
+        linechart.selectAll(".linegroup *")
+            .transition()
+            .duration(LineChart.transitionDuration)
+            .style("opacity", "0")
+            .remove();
+        linechart.selectAll(".linegroup")
             .transition()
             .duration(LineChart.transitionDuration)
             .style("opacity", "0")
@@ -110,7 +120,7 @@ class LineChart {
         
         for (let line of lines) {
 
-            const lineGroup = linechart.append("g");
+            const lineGroup = linechart.append("g").attr("class", "linegroup");
 
             // Plot line
             const path = lineGroup.append("path")
@@ -126,6 +136,47 @@ class LineChart {
                 .transition()
                 .duration(LineChart.transitionDuration)
                 .style("opacity", "1");
+            
+            // Append dots
+            const dateToId = (dateString) => `_${dateString.replaceAll("-", "_")}`;
+            const hitbox = {width: 30, height: 80};
+
+            // Create rectangle hitboxes
+            lineGroup.selectAll("rect")
+                .data(line.data)
+                .enter()
+                .append("rect")
+                .classed("datapoint_hitbox", true)
+                .attr("x", (d) => x(line.getX(d)) )
+                .attr("y", (d) => y(line.getY(d))-(hitbox.height/2) )
+                .attr("width", hitbox.width)
+                .attr("height", hitbox.height)
+                .style("fill", "rgba(0,0,0,0)")
+
+                // Add hitbox interaction
+                .on("mouseover", function(event, data) {
+                    const clzz = dateToId(data.date);
+                    d3.selectAll(`.${clzz}`)
+                        .style("opacity", 1);
+                })
+                .on("mouseout", function(event, data) {
+                    const clzz = dateToId(data.date);
+                    d3.selectAll(`.${clzz}`)
+                        .style("opacity", 0);
+                });
+            
+            // Create visible circles
+            lineGroup.selectAll("circle")
+                .data(line.data)
+                .enter()
+                .append("circle")
+                .attr("class", (d) => dateToId(d.date))
+                .attr("cx", (d) => x(line.getX(d)) )
+                .attr("cy", (d) => y(line.getY(d)) )
+                .attr("r", 5)
+                .style("fill", line.colour)
+                .style("opacity", 0)
+                .style("pointer-events", "none");
         }
     }
 }
