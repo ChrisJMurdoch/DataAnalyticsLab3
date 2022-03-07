@@ -137,20 +137,20 @@ class LineChart {
                 .duration(LineChart.transitionDuration)
                 .style("opacity", "1");
             
-            // Append dots
+            // COnversion from datestring to valid id
             const dateToId = (dateString) => `_${dateString.replaceAll("-", "_")}`;
-            const hitbox = {width: 30, height: 80};
 
             // Create rectangle hitboxes
+            const hitbox = {width: 30, height: 80};
             lineGroup.selectAll("rect")
                 .data(line.data)
                 .enter()
                 .append("rect")
                 .classed("datapoint_hitbox", true)
                 .attr("x", (d) => x(line.getX(d)) )
-                .attr("y", (d) => y(line.getY(d))-(hitbox.height/2) )
+                .attr("y", (d) => 0 )
                 .attr("width", hitbox.width)
-                .attr("height", hitbox.height)
+                .attr("height", this.innerHeight)
                 .style("fill", "rgba(0,0,0,0)")
 
                 // Add hitbox interaction
@@ -166,6 +166,7 @@ class LineChart {
                 });
             
             // Create visible circles
+            const dotRadius = 5;
             lineGroup.selectAll("circle")
                 .data(line.data)
                 .enter()
@@ -173,10 +174,24 @@ class LineChart {
                 .attr("class", (d) => dateToId(d.date))
                 .attr("cx", (d) => x(line.getX(d)) )
                 .attr("cy", (d) => y(line.getY(d)) )
-                .attr("r", 5)
+                .attr("r", dotRadius)
                 .style("fill", line.colour)
                 .style("opacity", 0)
                 .style("pointer-events", "none");
+
+            // Create data labels
+            lineGroup.selectAll("text")
+                .data(line.data)
+                .enter()
+                .append("text")
+                .text((d) => `${parseFloat(line.getY(d)).toFixed(2)}`)
+                .attr("class", (d) => dateToId(d.date))
+                .attr("x", (d) => x(line.getX(d)) )
+                .attr("y", (d) => y(line.getY(d)) - (dotRadius+2) )
+                .style("opacity", 0)
+                .style("text-anchor", "middle")
+                .style("pointer-events", "none")
+                .style("font-size", "0.75em");
         }
     }
 }
