@@ -87,7 +87,6 @@ class LineChart {
         }
         xExtent = (xExtent===null) ? [xMin, xMax] : xExtent;
         yExtent = (yExtent===null) ? [yMin, yMax] : yExtent;
-        console.log(xExtent, yExtent);
 
         // Create axes
         const x = d3.scaleTime()
@@ -127,7 +126,7 @@ class LineChart {
                 .datum(line.data)
                 .attr("fill", "none")
                 .attr("stroke", line.colour)
-                .attr("stroke-width", 1.5)
+                .attr("stroke-width", 1.3)
                 .attr("d", d3.line()
                     .x( (d) => x(line.getX(d)) )
                     .y( (d) => y(line.getY(d)) )
@@ -166,7 +165,7 @@ class LineChart {
                 });
             
             // Create visible circles
-            const dotRadius = 5;
+            const dotRadius = 2;
             lineGroup.selectAll("circle")
                 .data(line.data)
                 .enter()

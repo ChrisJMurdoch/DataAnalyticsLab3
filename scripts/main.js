@@ -30,11 +30,51 @@ AsyncLoader.onceLoaded(function() {
         const iso = record.iso_code;
 
         // Add new list
-        if (!isoToCountry.has(iso))
-            isoToCountry.set(iso, {name: record.location, iso_code: iso, data: []});
+        if (!isoToCountry.has(iso)) {
+
+            isoToCountry.set(iso, {
+
+                // Get unchanging country statistics from first record
+                iso_code: iso,
+                gdp_per_capita: record.gdp_per_capita,
+                life_expectancy: record.life_expectancy,
+                median_age: record.median_age,
+                population_density: record.population_density,
+                stringency_index: record.stringency_index,
+                name: record.location,
+
+                // Set latest values
+                latestVaccinatedPerHundred: 0,
+                latestCasesPerHundred: 0,
+                latestDeathsPerHundred: 0,
+                latestExcessMortality: 0,
+
+                // Record list
+                data: []
+            });
+        }
+
+        // Add max data
+        const country = isoToCountry.get(iso);
+        
+        const vaccinatedPerHundred = record.people_vaccinated_per_hundred;
+        if (vaccinatedPerHundred > country.latestVaccinatedPerHundred)
+            country.latestVaccinatedPerHundred = vaccinatedPerHundred;
+
+        const casesPerHundred = record.total_cases_per_million/10000;
+        if (casesPerHundred > country.latestCasesPerHundred)
+            country.latestCasesPerHundred = casesPerHundred;
+
+        const deathsPerHundred = record.total_deaths_per_million/10000;
+        if (deathsPerHundred > country.latestDeathsPerHundred)
+            country.latestDeathsPerHundred = deathsPerHundred;
+
+        const excessMortality = record.excess_mortality_cumulative;
+        if (excessMortality > country.latestExcessMortality)
+            country.latestExcessMortality = excessMortality;
         
         // Append record to list
-        isoToCountry.get(iso).data.push(record);
+        country.data.push(record);
     });
 
     // Find min and max dates
@@ -48,14 +88,6 @@ AsyncLoader.onceLoaded(function() {
                 maxDate = date;
         });
     });
-
-    // Fill some missing data
-    /*Enricher.fillValues(isoToCountry, [
-        "people_vaccinated_per_hundred",
-        "people_fully_vaccinated_per_hundred",
-        "total_cases_per_million",
-        "total_deaths_per_million"
-    ]);*/
 
 
 
@@ -83,14 +115,18 @@ AsyncLoader.onceLoaded(function() {
         });
     }
 
+    // Add data reference to each region
+    worldMap.features.forEach(region => {
+        region.covidData = isoToCountry.get(region.properties.ISO_A3);
+    });
 
 
-    // === CREATE VACCINATION GRAPH ===
+
+    // === CREATE VACCINATION GRAPHS ===
 
     // Create line graphs
     const vaccinationChart = new LineChart("vaccination_chart");
     const caseChart = new LineChart("case_chart");
-    const mortalityChart = new LineChart("mortality_chart");
 
 
     
@@ -151,4 +187,111 @@ AsyncLoader.onceLoaded(function() {
 
     // Emulate click on UK region
     WorldMap.click(null, {properties: {ISO_A3: "GBR", valid: true}});
+
+    // === CREATE VACCINATION GRAPH ===
+
+    // wealth_death_chart
+    const wealthDeathChart = new ScatterChart("wealth_death_chart");
+    wealthDeathChart.update(
+        `Wealth vs confirmed deaths of each country`,
+        isoToCountry,
+        (country) => country[1].gdp_per_capita,
+        (country) => country[1].latestDeathsPerHundred,
+        null,
+        null,
+        "orangered"
+    );
+    const wealth_death_rvalue = rValue(
+        isoToCountry,
+        (country) => country[1].gdp_per_capita,
+        (country) => country[1].latestDeathsPerHundred,
+    );
+    d3.select("#wealth_death_rvalue").text(wealth_death_rvalue.toFixed(3));
+
+    // wealth_excess_chart
+    const wealthExcessChart = new ScatterChart("wealth_excess_chart");
+    wealthExcessChart.update(
+        `Wealth vs excess mortality of each country`,
+        isoToCountry,
+        (country) => country[1].gdp_per_capita,
+        (country) => country[1].latestExcessMortality,
+        null,
+        null,
+        "red"
+    );
+    const wealth_excess_rvalue = rValue(
+        isoToCountry,
+        (country) => country[1].gdp_per_capita,
+        (country) => country[1].latestExcessMortality,
+    );
+    d3.select("#wealth_excess_rvalue").text(wealth_excess_rvalue.toFixed(3));
+
+    // vaccinated_death_chart
+    const vaccinatedDeathChart = new ScatterChart("vaccinated_death_chart");
+    vaccinatedDeathChart.update(
+        `Vaccinated% vs confirmed deaths of each country`,
+        isoToCountry,
+        (country) => country[1].gdp_per_capita,
+        (country) => country[1].latestVaccinatedPerHundred,
+        null,
+        null,
+        "gold"
+    );
+    const vaccinated_death_rvalue = rValue(
+        isoToCountry,
+        (country) => country[1].gdp_per_capita,
+        (country) => country[1].latestVaccinatedPerHundred,
+    );
+    d3.select("#vaccinated_death_rvalue").text(vaccinated_death_rvalue.toFixed(3));
+
+    // Generate survival data
+    const vaccinationSurvival = [];
+    for (let country of isoToCountry) {
+        for (let record of country[1].data) {
+            const vaccinatedPercent = parseFloat(record.people_vaccinated_per_hundred);
+            const survivalRate = parseFloat(1 - (record.total_deaths / record.total_cases));
+            if (!isNaN(vaccinatedPercent) && !isNaN(survivalRate))
+                vaccinationSurvival.push({vaccinatedPercent: vaccinatedPercent, survivalRate: survivalRate});
+        }
+    }
+
+    // Vaccination against deaths per case (survival)
+    const vaccinationSurvivalChart = new ScatterChart("vaccinated_survival_chart");
+    vaccinationSurvivalChart.update(
+        `Vaccinated% vs Covid survival rate`,
+        vaccinationSurvival,
+        (record) => record.vaccinatedPercent,
+        (record) => record.survivalRate,
+        null,
+        null,
+        "green"
+    );
+    const vaccinated_survival_rvalue = rValue(
+        vaccinationSurvival,
+        (record) => record.vaccinatedPercent,
+        (record) => record.survivalRate,
+    );
+    d3.select("#vaccinated_survival_rvalue").text(vaccinated_survival_rvalue.toFixed(3));
 });
+
+function rValue(data, getX, getY) {
+    let sumXY=0, sumX=0, sumY=0, sumXS=0, sumYS=0, n=0;
+    for (let d of data) {
+
+        const x=parseFloat(getX(d)), y=parseFloat(getY(d));
+        if (isNaN(x) || isNaN(y))
+            continue;
+
+        sumX += x;
+        sumY += y;
+        sumXY += x*y;
+        sumXS += x*x;
+        sumYS += y*y;
+        n++;
+    }
+    return (n*sumXY - sumX*sumY) /
+           Math.sqrt(
+               (n*sumXS - Math.pow(sumX, 2)) *
+               (n*sumYS - Math.pow(sumY, 2))
+            );
+}

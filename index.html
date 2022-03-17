@@ -14,10 +14,19 @@
 
     <!-- CONTENT -->
 
-    <!-- Info display -->
-    <div id="info">Info</div>
-
     <div id="centre_column">
+
+        <h2>Per-Country Analysis of Covid-19's Evolution</h2>
+
+        <!-- Map display buttons -->
+        <div class="map_button_bar">
+            <span>Map colouring</span>
+            <button onclick="WorldMap.colourDefault();">Default</button>
+            <button onclick="WorldMap.colourGdp();">GDP Per Capita</button>
+            <button onclick="WorldMap.colourPopulationDensity();">Population Density</button>
+            <button onclick="WorldMap.colourLifeExpectancy();">Life Expectancy</button>
+            <button onclick="WorldMap.colourStringency();">Stringency</button>
+        </div>
 
         <!-- World map -->
         <svg id="map_canvas"></svg>
@@ -31,6 +40,37 @@
         <!-- Excess mortality -->
         <svg id="mortality_chart" class="linechart"></svg>
 
+        <h2>Comparison of Covid-19's Effects Between Countries</h2>
+
+        <!-- wealth_death_chart -->
+        <svg id="wealth_death_chart" class="scatterchart"></svg>
+        <p>
+            The correlation between a country's average GDP and the number of reported Covid-caused deaths is positive, with an RValue of
+            <span id="wealth_death_rvalue">-</span>
+        </p>
+
+        <!-- wealth_excess_chart -->
+        <svg id="wealth_excess_chart" class="scatterchart"></svg>
+        <p>
+            The correlation between a country's average GDP and the reported excess mortality is positive, with an RValue of
+            <span id="wealth_excess_rvalue">-</span>
+        </p>
+
+        <!-- vaccinated_death_chart -->
+        <svg id="vaccinated_death_chart" class="scatterchart"></svg>
+        <p>
+            The correlation between the percentage of people vaccinated in a country and the reported excess mortality is positive, with an RValue of
+            <span id="vaccinated_death_rvalue">-</span>
+        </p>
+
+        <!-- Vaccination against Covid survival -->
+        <svg id="vaccinated_survival_chart" class="scatterchart"></svg>
+        <p>
+            ...
+            <span id="vaccinated_survival_rvalue">-</span>
+            <span id="vaccinated_survival_rvalue_average">-</span>
+        </p>
+
     </div>
 
     <!-- SCRIPTS -->
@@ -38,10 +78,10 @@
     <!-- Graphing functions -->
     <script src='./scripts/worldMap.js'></script>
     <script src='./scripts/lineChart.js'></script>
+    <script src='./scripts/scatterChart.js'></script>
 
     <!-- Utility functions -->
     <script src='./scripts/asyncLoader.js'></script>
-    <script src='./scripts/enricher.js'></script>
     
     <!-- Start main -->
     <script src='./scripts/main.js'></script>
