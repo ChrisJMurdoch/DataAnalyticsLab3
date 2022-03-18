@@ -36,6 +36,9 @@ body {
 #centre_column > h2 {
     text-align: center;
 }
+#centre_column > h3 {
+    text-align: center;
+}
 #centre_column > p {
     padding: 7px;
     box-sizing: border-box;
