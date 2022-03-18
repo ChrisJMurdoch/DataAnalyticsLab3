@@ -25,7 +25,9 @@
             <button onclick="WorldMap.colourGdp();">GDP Per Capita</button>
             <button onclick="WorldMap.colourPopulationDensity();">Population Density</button>
             <button onclick="WorldMap.colourLifeExpectancy();">Life Expectancy</button>
-            <button onclick="WorldMap.colourStringency();">Stringency</button>
+            <!-- <button onclick="WorldMap.colourStringency();">Stringency</button> -->
+            <button onclick="WorldMap.colourCases();">Cases</button>
+            <button onclick="WorldMap.colourDeaths();">Deaths</button>
         </div>
 
         <!-- World map -->
@@ -36,9 +38,6 @@
 
         <!-- Cases -->
         <svg id="case_chart" class="linechart"></svg>
-
-        <!-- Excess mortality -->
-        <svg id="mortality_chart" class="linechart"></svg>
 
         <h2>Comparison of Covid-19's Effects Between Countries</h2>
 
@@ -63,13 +62,7 @@
             <span id="vaccinated_death_rvalue">-</span>
         </p>
 
-        <!-- Vaccination against Covid survival -->
-        <svg id="vaccinated_survival_chart" class="scatterchart"></svg>
-        <p>
-            ...
-            <span id="vaccinated_survival_rvalue">-</span>
-            <span id="vaccinated_survival_rvalue_average">-</span>
-        </p>
+        <h3>Excess mortality rates for selected countries</h3>
 
     </div>
 
@@ -79,6 +72,7 @@
     <script src='./scripts/worldMap.js'></script>
     <script src='./scripts/lineChart.js'></script>
     <script src='./scripts/scatterChart.js'></script>
+    <script src='./scripts/barChart.js'></script>
 
     <!-- Utility functions -->
     <script src='./scripts/asyncLoader.js'></script>

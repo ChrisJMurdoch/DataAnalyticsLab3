@@ -12,7 +12,7 @@ class ScatterChart {
     innerWidth;
     innerHeight;
 
-    constructor(identifier) {
+    constructor(identifier, selectionCallback) {
 
         // Set ID
         this.identifier = identifier;
@@ -37,9 +37,48 @@ class ScatterChart {
             .classed("title", true)
             .attr("transform", `translate(${this.outerWidth/2}, ${ScatterChart.padding.top/2-3})`)
             .style("text-anchor", "middle");
+
+        // Add brushing
+        const _this = this;
+        chart.call( d3.brush()
+            .extent( [ [0,0], [innerWidth,innerHeight] ] )
+            .on("end", function(brush) {
+
+                // Clear selection
+                d3.selectAll(".scatterPoint")
+                    .classed("scatterHighlight", false);
+                
+                // Get countries
+                const selection = new Set();
+                chart.selectAll(".scatterPoint")
+                    .each( function(data) {
+                        const elem = d3.select(this);
+                        const coords = { x: elem.attr("cx"), y: elem.attr("cy") };
+                        if (
+                            coords.x > brush.selection[0][0] && coords.x < brush.selection[1][0] &&
+                            coords.y > brush.selection[0][1] && coords.y < brush.selection[1][1]
+                        ) {
+                            let iso;
+                            elem.each( (d) => { iso = d.iso_code || d[1].iso_code } );
+                            selection.add(iso);
+                        }
+                    });
+                
+                // Call callback
+                selectionCallback(selection);
+                
+                // Highlight selection
+                d3.selectAll(".scatterPoint")
+                    .filter(function(data) {
+                        return selection.has(data.iso_code || data[1].iso_code);
+                    })
+                    .classed("scatterHighlight", true);
+            })
+        );
     }
 
     update(title, data, getX, getY, xExtent, yExtent, colour) {
+        this.getX=getX, this.getY=getY;
 
         // Get canvas components
         const chart_canvas = d3.select(`#${this.identifier}`);
@@ -74,6 +113,7 @@ class ScatterChart {
         const y = d3.scaleLinear()
             .domain([ yExtent[0], yExtent[1] ])
             .range([ this.innerHeight, 0]);
+        this.x=x, this.y=y;
         chart.append("g")
             .call(d3.axisLeft(y))
             .classed("axis", true);
@@ -101,6 +141,7 @@ class ScatterChart {
             .data(data)
             .enter()
             .append("circle")
+            .classed("scatterPoint", true)
             .attr("cx", (d) => x(getX(d)))
             .attr("cy", (d) => y(getY(d)))
             .attr("r", 2)

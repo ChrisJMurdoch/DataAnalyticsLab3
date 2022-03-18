@@ -217,4 +217,62 @@ class WorldMap {
             .data(data)
             .style("fill", (d) => (d.covidData && d.covidData.stringency_index) ? grad(d.covidData.stringency_index) : "grey");
     }
+
+    /** Recolour the map regions based region cases */
+    static colourCases() {
+
+        // Get valid data
+        const data = this.jsonData.features;
+        const filtered = data.filter((d) => d.covidData && d.covidData.latestCasesPerHundred);
+
+        // Get extent
+        const extent = d3.extent(
+            filtered,
+            (d) => parseFloat(d.covidData.latestCasesPerHundred)
+        );
+        const average = d3.mean(
+            filtered,
+            (d) => parseFloat(d.covidData.latestCasesPerHundred)
+        );
+
+        // Create colour scale
+        let grad = d3.scaleLinear()
+            .domain([extent[0], average, extent[1]])
+            .range(["red", "yellow", "green"]);
+
+        // Colour regions
+        d3.select('#map')
+            .selectAll('path')
+            .data(data)
+            .style("fill", (d) => (d.covidData && d.covidData.latestCasesPerHundred) ? grad(d.covidData.latestCasesPerHundred) : "grey");
+    }
+
+    /** Recolour the map regions based region deaths */
+    static colourDeaths() {
+
+        // Get valid data
+        const data = this.jsonData.features;
+        const filtered = data.filter((d) => d.covidData && d.covidData.latestDeathsPerHundred);
+
+        // Get extent
+        const extent = d3.extent(
+            filtered,
+            (d) => parseFloat(d.covidData.latestDeathsPerHundred)
+        );
+        const average = d3.mean(
+            filtered,
+            (d) => parseFloat(d.covidData.latestDeathsPerHundred)
+        );
+
+        // Create colour scale
+        let grad = d3.scaleLinear()
+            .domain([extent[0], average, extent[1]])
+            .range(["red", "yellow", "green"]);
+
+        // Colour regions
+        d3.select('#map')
+            .selectAll('path')
+            .data(data)
+            .style("fill", (d) => (d.covidData && d.covidData.latestDeathsPerHundred) ? grad(d.covidData.latestDeathsPerHundred) : "grey");
+    }
 }

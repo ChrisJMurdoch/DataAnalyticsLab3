@@ -69,4 +69,15 @@ body {
     filter: drop-shadow(0 0 7px rgba(0,0,0,0.75));
 }
 
-/* Line graphs */
+/* Scatter graphs */
+
+.scatterPoint {
+    opacity: 0.5;
+    transform-box: fill-box;
+}
+
+.scatterPoint.scatterHighlight {
+    opacity: 1;
+    stroke: black;
+    transform: scale(1.4);
+}
